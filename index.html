@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+	<meta name="viewport" content="width=device-width" charset="UTF-8">
+	<head>
+		<link rel="icon" type="image/png" href="favicon.ico"/>
+		<script defer type="text/javascript" src="index.js" charset="utf-8"></script>
+		<script src="https://d3js.org/d3.v7.js" type="text/javascript"></script>
+		<link href="index.css" rel="stylesheet" type="text/css">
+		<title>Dictionary of the Russian Language</title>
+	</head>
+	<body>
+		<div class ="topBar">
+			<div id="titleDiv">
+				<div><img src = 'favicon.ico'></div>
+				<div>
+					<p><b>Dictionary of the Russian Language</b></p>
+				</div>
+				<div><img src = 'favicon.ico'></div>
+			</div>
+			<div id="toolbarDiv">
+				<div>
+					<p style="font-size: 14px"><select id="sort" onchange="select();">
+						<option value="freq">Sort By Frequency</option>
+						<option value="alpha">Sort Alphabetic (А-Я)</option>
+						<option value="alpha_rev">Sort Alphabetic (Я-А)</option>
+					</select></p>
+				</div>
+				<div>
+					<select id="filter" onchange="filter();">
+						<option value="">- Filter by Part of Speech -</option>
+						<option value="adjective">Adjectives</option>
+						<option value="adverb">Adverbs</option>
+						<option value="noun">Nouns</option>
+						<option value="numeral">Numerals</option>
+						<option value="particle">Particles</option>
+						<option value="phrase">Phrases</option>
+						<option value="pronoun">Pronouns</option>
+						<option value="proverb">Proverbs</option>
+						<option value="verb">Verbs</option>
+					</select>
+				</div>
+				<div>
+					<input type="text" placeholder="Search for a word" size = "30" id="search">
+					<button onclick="search();">Go</button>
+				</div>
+				<div>
+					<p style="font-size: 14px">Copy Stress?<input id="stressCopy" type="checkbox"></p>
+				</div>
+			</div>
+		</div>
+		<div class="main">
+			<div id="header">
+				<div class="col"><p><b>Word</b></p></div>
+				<div class="col"><p><b>Declension/Conjugation</b></p></div>
+			</div>
+		</div>
+		<svg id="clear" viewBox = "0 0 50 30">
+			<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">Clear</text>
+		</svg>
+	</body>
+</html>
