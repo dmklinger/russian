@@ -138,11 +138,11 @@ def get_wiktionary_word(word, use_cache=True):
 			d = d.replace(',:', ':')
 			d = d.rstrip(',.:').strip()
 			if len(d) > 0:
-				w.add_definition(pos, d)
+				w.add_definition(pos, d, human_audited=True)
 				w.add_info(Word.replace_pos(pos), word_info)
 			if len(glosses) > 0:
 				for g in glosses:
-					w.add_definition(pos, g)
+					w.add_definition(pos, g, human_audited=True)
 					w.add_info(Word.replace_pos(pos), word_info)
 		inflection_pointer = word_pointer.parent
 		if pos != 'verb':

@@ -75,7 +75,8 @@ class Forms:
 
 class Usage:
 
-	def __init__(self, word, pos):
+	# human audited is for actual wiktionary entries
+	def __init__(self, word, pos, human_audited=False):
 		self.word = word
 		self.pos = pos
 		self.definitions = {}
@@ -84,6 +85,7 @@ class Usage:
 		self.forms = {}
 		self.info = {}
 		self.delete_me = False
+		self.human_audited = human_audited
 
 	def add_definitions(self, definitions):
 		for d in definitions:
@@ -326,6 +328,9 @@ class Usage:
 		if len(self.info) == 0 and len(other.info) > 0:
 			self.info = other.info
 
+		if other.human_audited:
+			self.human_audited = True
+
 	def get_dict(self, final_forms=False):
 		return {
 			'defs': self.get_definitions(),
@@ -363,7 +368,7 @@ class Word:
 	def get_word_no_accent(self):
 		return self.word.replace("́", "")
 
-	def add_definition(self, pos, definition):
+	def add_definition(self, pos, definition, human_audited=False):
 		if pos == 'verb' and len(definition.split()) == 1:
 			definition = f"to {definition}"
 		if '[1]' in definition:
@@ -404,8 +409,10 @@ class Word:
 
 		if pos in self.usages:
 			u = self.usages[pos]
+			if human_audited:
+				u.human_audited = True
 		else:
-			u = Usage(self.word, pos)
+			u = Usage(self.word, pos, human_audited)
 			self.usages[pos] = u
 		if ' of ' in definition and definition.split(' of ')[1][0] in cyrillic:
 			if ':' in definition or ';' in definition:
@@ -438,6 +445,18 @@ class Word:
 					print(f'DELETING: {self.word}, {pos} - reason: bad pos')
 
 				del self.usages[pos]
+
+		human_audited = []
+		not_human_audited = []
+		for pos, usage in self.usages.items():
+			if usage.human_audited:
+				human_audited.append(usage)
+			else:
+				not_human_audited.append((pos, usage))
+		if len(human_audited) == 1:
+			for p, x in not_human_audited:
+				human_audited[0].merge(x)
+				del self.usages[p]
 
 	def add_frequencies(self, frequencies):
 		if frequencies:
