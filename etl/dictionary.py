@@ -5,7 +5,7 @@ from collections import defaultdict
 
 import extract
 
-cyrillic = "ЄІЇАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяєії"
+cyrillic = "ЄІЇАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯЁабвгдежзийклмнопрстуфхцчшщъыьэюяєіїё"
 
 class Forms:
 	
@@ -97,7 +97,16 @@ class Usage:
 		bad_defs = set()
 		for d1 in self.definitions.keys():
 			for d2 in self.definitions.keys():
-				if d1 != d2 and d1.lower() in d2.lower():
+				new_d = ''
+				parenthesis = 0
+				for d in d2:
+					if d == '(':
+						parenthesis += 1
+					if parenthesis == 0:
+						new_d += d
+					if d == ')':
+						parenthesis -= 1
+				if d1 != d2 and d1.lower() in new_d.lower():
 					bad_defs.add(d1)
 		for d in bad_defs:
 			del self.definitions[d]
@@ -139,7 +148,7 @@ class Usage:
 					matched_word = dictionary.dict[found_word.replace("́", '')]
 				if matched_word:
 					if self.pos in matched_word.usages:
-						self.merge(matched_word.usages[self.pos], accept_alerts=False)
+						self.merge(deepcopy(matched_word.usages[self.pos]), accept_alerts=False)
 					self.add_definition(d)
 				elif len(self.definitions.keys()) == len(self.alerted_definitions.keys()):
 					del self.definitions[d]
@@ -559,7 +568,7 @@ class Dictionary:
 			if len(word.usages.keys()) == 0:
 				print(f'DELETING WORD: {w}')
 				del self.dict[w]
-			elif len([x for x in word.word if x not in cyrillic + '- ' + "́"]) > 0:
+			elif len([x for x in word.word if x not in cyrillic + '- ,.;:!/()' + "́"]) > 0:
 				print(f'DELETING {word.word}, forbidden letters')
 				del self.dict[w]
 
