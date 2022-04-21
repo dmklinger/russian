@@ -53,6 +53,27 @@ def get_ontolex(use_cache=True):
 	print('decompressing finished')
 
 
+def get_superlative_adjectives():
+	# I don't know why these aren't considered lemmas
+	def add_words(words, results):
+		for word in results['query']['categorymembers']:
+			title = word['title']
+			if 'Category' not in title:
+				words.append(title)
+
+	words = []
+
+	results = session.get('https://en.wiktionary.org/w/api.php?action=query&list=categorymembers&cmtitle=Category:Russian_superlative_adjectives&format=json&cmlimit=max').json()
+	add_words(words, results)
+
+	while 'continue' in results:
+		cmcontinue = results['continue']
+		results = session.get(f'https://en.wiktionary.org/w/api.php?action=query&list=categorymembers&cmtitle=Category:Russian_superlative_adjectives&format=json&cmlimit=max&cmcontinue={cmcontinue}').json()
+		add_words(words, results)
+	
+	return words
+
+
 def get_lemmas():
 	def add_words(words, results):
 		for word in results['query']['categorymembers']:
@@ -70,7 +91,7 @@ def get_lemmas():
 		results = session.get(f'https://en.wiktionary.org/w/api.php?action=query&list=categorymembers&cmtitle=Category:Russian_lemmas&format=json&cmlimit=max&cmcontinue={cmcontinue}').json()
 		add_words(words, results)
 	
-	return words
+	return words + get_superlative_adjectives()
 
 
 def get_wiktionary_word(word, use_cache=True):
@@ -101,7 +122,7 @@ def get_wiktionary_word(word, use_cache=True):
 	results = []
 
 	word_name = article.find_all('strong', {'class': 'Cyrl headword'}, lang='ru')
-	for word_pointer in word_name:
+	for word_pointer in word_name[::-1]:
 		bad_stuff = word_pointer.find_all(class_='reference')
 		for bs in bad_stuff:
 			bs.decompose()
@@ -155,8 +176,10 @@ def get_wiktionary_word(word, use_cache=True):
 		if table is None and inflection_pointer is not None:
 			table = inflection_pointer.find_next('table', {'class': 'inflection-table inflection inflection-ru inflection-verb'})
 		if table and len(w.usages.keys()) > 0:
-			forms, form_type = parse_wiktionary_table(accented_name, table) 
-			w.add_forms(Word.replace_pos(pos), forms, form_type)
+			if 'Pre-reform' not in str(table.parent):
+				forms, form_type = parse_wiktionary_table(accented_name, table) 
+				w.add_forms(Word.replace_pos(pos), forms, form_type)
+				table.extract()
 		results.append(w)
 	return results
 

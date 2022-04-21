@@ -150,7 +150,7 @@ class Usage:
 					matched_word = dictionary.dict[found_word.replace("́", '')]
 				if matched_word:
 					if self.pos in matched_word.usages:
-						self.merge(deepcopy(matched_word.usages[self.pos]), accept_alerts=False)
+						self.merge(deepcopy(matched_word.usages[self.pos]), accept_alerts=False, use_other_forms=False)
 					self.add_definition(d)
 				elif len(self.definitions.keys()) == len(self.alerted_definitions.keys()):
 					del self.definitions[d]
@@ -209,55 +209,6 @@ class Usage:
 			forms = Forms(forms, form_type)
 			self.forms[form_type] = forms
 
-	def add_inflection(self, results, force=False):
-
-		def get_inflection_positions(word):
-			word = word + '|'  # end of word marker, irrelevant
-			word_split = [(word[i], word[i+1]) for i in range(len(word) - 1) if word[i] != "́"]
-			result = set([i for i in range(len(word_split)) if word_split[i][1] == "́"])
-			return result
-
-		added_flag = False
-		new_usages = []
-		self.delete_me = True
-		for found_word, word_info, forms, form_type in results:
-			if found_word and self.pos and self.pos in word_info:  
-				if self.word == found_word: # perfect match!
-					self.add_info(word_info)
-					self.add_forms(forms, form_type)
-					added_flag = True
-					self.delete_me = False
-				else:
-					this_inflection = get_inflection_positions(self.word) 
-					found_inflection = get_inflection_positions(found_word)
-					if len([x for x in this_inflection if x not in found_inflection]) == 0:  # stress could be elsewhere
-						new_usage = Usage(found_word, self.pos)
-						new_usage.definitions = deepcopy(self.definitions)
-						new_usage.alerted_definitions = deepcopy(self.alerted_definitions)
-						new_usage.add_info(word_info)
-						new_usage.add_forms(forms, form_type)
-						new_usages.append(new_usage)
-						added_flag = True
-
-			elif force:
-				if self.word == found_word:
-					if self.pos in ('noun', 'verb', 'adjective') and self.pos != form_type:
-						new_usage = Usage(self.word, form_type)
-						new_usage.definitions = deepcopy(self.definitions)
-						new_usage.alerted_definitions = deepcopy(self.alerted_definitions)
-						new_usage.add_info(word_info)
-						new_usage.add_forms(forms, form_type)
-						new_usages.append(new_usage)
-					else:
-						self.add_info(word_info)
-						self.add_forms(forms, form_type)
-						self.delete_me = False
-		if force and self.pos not in ('noun', 'verb', 'adjective'):
-			self.delete_me = False
-		if not added_flag and len(self.forms) > 0:
-			self.delete_me = False
-		return not added_flag and len(self.forms) == 0, new_usages
-
 	def get_definitions(self, accept_alerts=True):
 		result = []
 		for d, pov in self.definitions.items():
@@ -303,7 +254,7 @@ class Usage:
 				results += f
 		return results
 
-	def merge(self, other, accept_alerts=True):
+	def merge(self, other, accept_alerts=True, use_other_forms=True):
 		new_usage = Usage(self.word, self.pos)
 		these_definitions = self.get_definitions()
 		other_definitions = other.get_definitions()
@@ -319,11 +270,12 @@ class Usage:
 				new_usage.add_definition(d, alert=d in other.alerted_definitions)
 		self.definitions = new_usage.definitions
 		self.alerted_definitions = new_usage.alerted_definitions
-		for ft, forms in other.forms.items():
-			if ft in self.forms:
-				self.forms[ft].add_forms(forms.forms)
-			else:
-				self.forms[ft] = forms
+		if use_other_forms:
+			for ft, forms in other.forms.items():
+				if ft in self.forms:
+					self.forms[ft].add_forms(forms.forms)
+				else:
+					self.forms[ft] = forms
 
 		if len(self.info) == 0 and len(other.info) > 0:
 			self.info = other.info
