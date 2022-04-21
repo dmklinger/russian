@@ -1,6 +1,8 @@
 Small fun little side project, fully searchable Russian dictionary (Rus -> Eng). A bit messy.
 
-Adjusted from my Ukrainian dictionary, located [here](https://github.com/dmklinger/ukrainian) All data scraped from wiktionary and [dbnary](http://kaiko.getalp.org/about-dbnary/), which helpfully provides many, many definitions for words that do not have entries yet in Wiktionary. 
+Adjusted from my Ukrainian dictionary, located [here](https://github.com/dmklinger/ukrainian). 
+
+All data scraped from wiktionary and [dbnary](http://kaiko.getalp.org/about-dbnary/), which helpfully provides many, many definitions for words that do not have entries yet in Wiktionary. 
 
 Frontend gratiously hosted by github pages: https://dmklinger.github.io/russian
 
