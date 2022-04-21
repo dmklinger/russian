@@ -91,17 +91,20 @@ var main = (data, increase) => {
 			.text('Plur.')
 		for (let i=0; i < word_data.length; i++) {
 			const row = word_data[i]
-			const this_row = table.append('tr')
-			this_row.append('th')
-				.attr('id', 'leftLabel')
-				.text(row[0])
-			this_row.selectAll('td')
-				.data(row.slice(1))
-				.join('td')
-				.selectAll('p')
-				.data((d) => { return d })
-				.join('p')
-				.text((d) => { return d })	
+			console.log(JSON.stringify(row))
+			if (JSON.stringify(row) !== '["Short",["—"],["—"],["—"],["—"]]') {  // blank short forms are not allowed
+				const this_row = table.append('tr')
+				this_row.append('th')
+					.attr('id', 'leftLabel')
+					.text(row[0])
+				this_row.selectAll('td')
+					.data(row.slice(1))
+					.join('td')
+					.selectAll('p')
+					.data((d) => { return d })
+					.join('p')
+					.text((d) => { return d })	
+			}
 		};
 	}
 

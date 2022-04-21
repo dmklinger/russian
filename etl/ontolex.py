@@ -99,7 +99,7 @@ class Ontolex:
 				if new_word == word:
 					part_of_speech = vals[1] if len(vals) > 1 else None
 					self.get_word(word).add_gloss(gloss, part_of_speech)
-			if '@ru' in line:
+			if '@ru' in line and not '@rue' in line:
 				translation = line.split('@')[0].replace('\\\"', '*').split("\"")[1].replace('*', '\\\"').replace('[','').replace(']','')
 				translation = " ".join([x.split('|')[0] for x in translation.split(' ')])
 				if new_word == word:
