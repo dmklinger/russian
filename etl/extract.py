@@ -20,20 +20,6 @@ try:
 except:  # does not exist yet
 	wiktionary_cache = {}
 
-def get_viewstate(bs=None):
-	if bs is None:
-		url = "https://lcorp.ulif.org.ua/dictua/dictua.aspx"
-		req = session.get(url)
-		data = req.text
-		bs = BeautifulSoup(data, features='lxml')
-	return (
-		bs.find("input", {"id": "__VIEWSTATE"}).attrs['value'],
-		bs.find("input", {"id": "__VIEWSTATEGENERATOR"}).attrs['value'],
-		bs.find("input", {"id": "__EVENTVALIDATION"}).attrs['value'],
-	)
-
-vs, vsg, ev = get_viewstate()
-
 try:
 	with open('data/inflection_raw_data.json', 'r', encoding='utf-8') as f:
 		inflection_cache = json.loads(f.read())

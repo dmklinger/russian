@@ -124,7 +124,7 @@ class Usage:
 					found_word = found_word + x
 				if x in cyrillic + "'" + "́" and initial_index is None:
 					initial_index = i
-			found_word = found_word.strip()
+			found_words = re.sub(r"[^\ẃ]+", ' ', found_word).strip().split()
 			acceptable_forms = [
 				'alternative', 
 				'contraction', 
@@ -143,16 +143,19 @@ class Usage:
 				'('
 			]
 			if sum([1 if af in d.lower() else 0 for af in acceptable_forms]) > 0:
-				matched_word = None
-				if found_word in dictionary.dict:
-					matched_word = dictionary.dict[found_word]
-				elif found_word.replace("́", '') in dictionary.dict:
-					matched_word = dictionary.dict[found_word.replace("́", '')]
-				if matched_word:
-					if self.pos in matched_word.usages:
-						self.merge(deepcopy(matched_word.usages[self.pos]), accept_alerts=False, use_other_forms=False)
-					self.add_definition(d)
-				elif len(self.definitions.keys()) == len(self.alerted_definitions.keys()):
+				nothing_found = True
+				for found_word in found_words:
+					matched_word = None
+					if found_word in dictionary.dict:
+						matched_word = dictionary.dict[found_word]
+					elif found_word.replace("́", '') in dictionary.dict:
+						matched_word = dictionary.dict[found_word.replace("́", '')]
+					if matched_word:
+						if self.pos in matched_word.usages:
+							self.merge(deepcopy(matched_word.usages[self.pos]), accept_alerts=False, use_other_forms=False)
+						self.add_definition(d)
+						nothing_found = False
+				if nothing_found and len(self.definitions.keys()) == len(self.alerted_definitions.keys()):
 					del self.definitions[d]
 					del self.alerted_definitions[d]
 			else:
@@ -250,7 +253,7 @@ class Usage:
 		for forms in self.get_forms().values():
 			for f in forms:
 				f = f.replace('́', '')
-				f = re.sub(r"[^\w']+", ' ', f).strip().split()
+				f = re.sub(r"[^\w'́]+", ' ', f).strip().split()
 				results += f
 		return results
 
@@ -342,7 +345,8 @@ class Word:
 			(',,', ','),
 			(', (', ' ('),
 			('!slash!', '/'),
-			(', ;', ',')
+			(', ;', ','),
+			(' )', ')')
 		]
 		for x, y in bad_stuff:
 			if x in definition:
@@ -395,7 +399,6 @@ class Word:
 					print(f'DELETING: {self.word}, {pos} - reason: said to delete')
 				elif pos in ('suffix', 'prefix'):
 					print(f'DELETING: {self.word}, {pos} - reason: bad pos')
-
 				del self.usages[pos]
 
 		human_audited = []
@@ -537,10 +540,10 @@ class Dictionary:
 			word = self.dict[w]
 			word.garbage_collect()
 			if len(word.usages.keys()) == 0:
-				print(f'DELETING WORD: {w}')
+				# print(f'DELETING WORD: {w}')
 				del self.dict[w]
 			elif len([x for x in word.word if x not in cyrillic + '- ,.;:!/()' + "́"]) > 0:
-				print(f'DELETING {word.word}, forbidden letters')
+				# print(f'DELETING {word.word}, forbidden letters')
 				del self.dict[w]
 
 	def add_frequencies(self):
@@ -582,7 +585,7 @@ class Dictionary:
 			word = self.dict[d['word']]
 			usage = word.usages[d['pos']]
 			def_words = usage.get_definition_words()
-			form_words = usage.get_form_words() + re.sub(r"[^\w']+", ' ', word.get_word_no_accent()).strip().split()
+			form_words = usage.get_form_words() + re.sub(r"[^\w]+", ' ', word.get_word_no_accent()).strip().split()
 			for d in def_words:
 				d = d.lower().replace('ё', 'е')
 				word_index[d].add(i)
