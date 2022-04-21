@@ -91,7 +91,6 @@ var main = (data, increase) => {
 			.text('Plur.')
 		for (let i=0; i < word_data.length; i++) {
 			const row = word_data[i]
-			console.log(JSON.stringify(row))
 			if (JSON.stringify(row) !== '["Short",["—"],["—"],["—"],["—"]]') {  // blank short forms are not allowed
 				const this_row = table.append('tr')
 				this_row.append('th')
@@ -460,7 +459,6 @@ function searchHelper() {
 		let indexes;
 		const canInclude = fuzzyWords.length === 1 && fuzzyWords[0].replace(/[^a-z]/g, '').length === 0;
 		for (const word of fuzzyWords) {
-			console.log(word)
 			if (!word) break;
 			// generate words containing all searched letters
 			let wordIndexes;
@@ -561,7 +559,6 @@ function searchHelper() {
 			indexes = new Set();
 			for (const elem of _indexes) { indexes.add(elem); }
 		}
-		console.log(indexes)
 		if (indexes) {
 			numDisplayed = 300;
 			data = d3.filter(data, x => indexes.has(x.index))
@@ -591,7 +588,6 @@ function search() {
 	let newSearchTerm = ''
 	for (const s of searchTerm) { if (letters.includes(s)) newSearchTerm += s; }
 	searchTerm = newSearchTerm;
-	console.log(searchTerm)
 	if (oldSearch) {
 		selectHelper();
 		filterHelper();
