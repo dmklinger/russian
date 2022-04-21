@@ -74,6 +74,7 @@ var main = (data, increase) => {
 			['Gen.', gf(d, 'gen am'), gf(d, 'gen an'), gf(d, 'gen af'), gf(d, 'gen ap')],
 			['Dat.', gf(d, 'dat am'), gf(d, 'dat an'), gf(d, 'dat af'), gf(d, 'dat ap')],
 			['Pre.', gf(d, 'pre am'), gf(d, 'pre an'), gf(d, 'pre af'), gf(d, 'pre ap')],
+			['Short', gf(d, 'short am'), gf(d, 'short an'), gf(d, 'short af'), gf(d, 'short ap')]
 		]
 
 		const table = obj.append('table')
@@ -133,7 +134,7 @@ var main = (data, increase) => {
 				(tense === 'past') 
 				? ['m', 'n', 'f']
 				: (tense === 'imp')
-				? ['1', '2']
+				? ['s', 'p']
 				: ['1', '2', '3']
 			const tense_label_width = tense === 'imp' ? 3 : 2
 			const tense_label_tr = table.append('tr')
@@ -152,12 +153,14 @@ var main = (data, increase) => {
 						'f': 'Fem.',
 						'1': '1st',
 						'2': '2nd',
-						'3': '3rd'
+						'3': '3rd',
+						's': 'Sing.',
+						'p': 'Plur.'
 					}[d]
 				})
-			for (const number of ['s', 'p']) {
+			for (const number of (tense == 'imp' ? ['2'] : ['s', 'p'])) {
 				const number_label_tr = table.append('tr')
-				const number_label = number === 's' ? 'Sing.' : 'Plur.'
+				const number_label = tense == 'imp' ? '2nd' : number === 's' ? 'Sing.' : 'Plur.'
 				number_label_tr.append('th')
 					.attr('id', 'leftLabel')
 					.text(number_label)
@@ -176,7 +179,7 @@ var main = (data, increase) => {
 						.attr('colspan', tense_label_width)
 						.selectAll()
 						.data((tc) => {
-							const form = `${tc}${number}`
+							const form = tense == 'imp' ? `${number}${tc}` : `${tc}${number}`
 							return gf(d[tense], form)
 						})
 						.join('p')
@@ -288,7 +291,7 @@ var main = (data, increase) => {
 				const beforeClear = isBeginning || !letters.includes(phrase[i - 1].toLowerCase());
 				const afterClear = isEnd || !letters.includes(phrase[i + 1].toLowerCase());
 
-				const isWordMatch = thisLetter.toLowerCase() === word[index];
+				const isWordMatch = thisLetter.toLowerCase().replace('ё', 'е') === word[index];
 				const isAccent = thisLetter === "́";
 			
 				if (index === 0) {
@@ -395,49 +398,6 @@ fetch('words.json')
 		alpha_data = d3.sort(
 			[...data], 
 			x => x.word.toLowerCase()
-				.replaceAll('\u0301', '')
-				.split('')
-				.map((y) => {
-					const letters = Object({
-						'а': '0',
-						'б': '1',
-						'в': '2',
-						'г': '3',
-						'ґ': '4',
-						'д': '5',
-						'е': '6',
-						'є': '7',
-						'ж': '8',
-						'з': '9',
-						'и': ':',
-						'і': ';',
-						'ї': '<',
-						'й': '?',
-						'к': '@',
-						'л': 'A',
-						'м': 'B',
-						'н': 'C',
-						'о': 'D',
-						'п': 'E',
-						'р': 'F',
-						'с': 'G',
-						'т': 'H',
-						'у': 'I',
-						'ф': 'K',
-						'х': 'L',
-						'ц': 'M',
-						'ч': 'N',
-						'ш': 'O',
-						'щ': 'P',
-						'ь': 'Q',
-						'ю': 'R',
-						'я': 'S',
-						"'": 'T'
-					})
-					if (y in letters) return letters[y]
-					return ''
-				})
-				.join()
 		)
 	})
 	.catch(err => {throw err});
@@ -497,6 +457,7 @@ function searchHelper() {
 		let indexes;
 		const canInclude = fuzzyWords.length === 1 && fuzzyWords[0].replace(/[^a-z]/g, '').length === 0;
 		for (const word of fuzzyWords) {
+			console.log(word)
 			if (!word) break;
 			// generate words containing all searched letters
 			let wordIndexes;
@@ -527,7 +488,6 @@ function searchHelper() {
 				indexes = _indexes;
 			}
 		}
-		console.log(literalWords)
 		for (const word of literalWords) {
 			if (!word) break;
 			// generate words containing all searched letters
@@ -571,7 +531,7 @@ function searchHelper() {
 					else if (l === ')') paren--;
 					else if (paren === 0) noParen += l;
 				}
-				return noParen.toLowerCase().includes(literalRes)
+				return noParen.toLowerCase().replace('ё', 'е').includes(literalRes)
 			} 
 
 			const unpack = (y) => {
@@ -588,14 +548,17 @@ function searchHelper() {
 			let goodData = d3.filter(
 				allData,
 				x => (
-					d3.filter(x.defs, filterFunc) + d3.filter(unpack(x.forms), y => { return y.replaceAll('\u0301', '') === literalRes; } )
-				).length > 0 || x.word.replaceAll('\u0301', '') === literalRes
+					d3.filter(x.defs, filterFunc) + d3.filter(unpack(x.forms), y => { 
+						return y.replaceAll('\u0301', '').replace('ё', 'е') === literalRes; 
+					} )
+				).length > 0 || x.word.replaceAll('\u0301', '').replace('ё', 'е') === literalRes
 			).map(x => x.index)
 			
 			const _indexes = d3.filter(Array.from(indexes), x => goodData.includes(x))
 			indexes = new Set();
 			for (const elem of _indexes) { indexes.add(elem); }
 		}
+		console.log(indexes)
 		if (indexes) {
 			numDisplayed = 300;
 			data = d3.filter(data, x => indexes.has(x.index))
@@ -621,10 +584,11 @@ function filter() {
 function search() {
 	const letters = "abcdefghijklmnopqrstuvwxyzабвгдежзийклмнопрстуфхцчшщъыьэюяєії '\""
 	const oldSearch = searchTerm;
-	searchTerm = document.querySelector('input#search').value.toLowerCase();
+	searchTerm = document.querySelector('input#search').value.toLowerCase().replace('ё', 'е');
 	let newSearchTerm = ''
 	for (const s of searchTerm) { if (letters.includes(s)) newSearchTerm += s; }
 	searchTerm = newSearchTerm;
+	console.log(searchTerm)
 	if (oldSearch) {
 		selectHelper();
 		filterHelper();
