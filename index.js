@@ -612,6 +612,7 @@ function search() {
 	const letters = "abcdefghijklmnopqrstuvwxyzабвгдежзийклмнопрстуфхцчшщъыьэюяєії '\""
 	const oldSearch = searchTerm;
 	searchTerm = document.querySelector('input#search').value.toLowerCase().replace('ё', 'е');
+	searchTerm = searchTerm.replaceAll(/[- ,.;:!\/\(\)]/g, ' ')
 	let newSearchTerm = ''
 	for (const s of searchTerm) { if (letters.includes(s)) newSearchTerm += s; }
 	searchTerm = newSearchTerm;
