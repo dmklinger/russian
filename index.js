@@ -476,9 +476,12 @@ function searchHelper() {
 		let literalWords = Array()
 		for (let literalRes of literalResults) {
 			literalPhrases.push(literalRes[1])
-			literalWords = literalWords.concat(literalRes[1].split(' '));
+			literalWords = literalWords.concat(literalRes[1].replaceAll(/[- ,.;:!\/\(\)]/g, ' ').replaceAll(/\s+/g, ' ').split(' '));
 		}
-		const fuzzyResults = searchTerm.replaceAll(/"([^"]*)"/g, '').trim().replaceAll(/\s+/g, ' ')
+		const fuzzyResults = searchTerm.replaceAll(/[- ,.;:!\/\(\)]/g, ' ')
+			.replaceAll(/"([^"]*)"/g, '')
+			.replaceAll(/\s+/g, ' ')
+			.trim()
 		fuzzyWords = Array()
 		for (let fuzzyRes of fuzzyResults.split(' ')) {
 			fuzzyWords.push(fuzzyRes);
@@ -609,10 +612,9 @@ function filter() {
 }
 
 function search() {
-	const letters = "abcdefghijklmnopqrstuvwxyzабвгдежзийклмнопрстуфхцчшщъыьэюяєії '\""
+	const letters = "abcdefghijklmnopqrstuvwxyzабвгдежзийклмнопрстуфхцчшщъыьэюяєії - ,.;:!/()'\""
 	const oldSearch = searchTerm;
 	searchTerm = document.querySelector('input#search').value.toLowerCase().replace('ё', 'е');
-	searchTerm = searchTerm.replaceAll(/[- ,.;:!\/\(\)]/g, ' ')
 	let newSearchTerm = ''
 	for (const s of searchTerm) { if (letters.includes(s)) newSearchTerm += s; }
 	searchTerm = newSearchTerm;
