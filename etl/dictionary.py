@@ -86,6 +86,8 @@ class Usage:
 
 	# human audited is for actual wiktionary entries
 	def __init__(self, word, pos, human_audited=False):
+		if not pos:
+			pos = 'particle'
 		self.word = word
 		self.pos = pos
 		self.definitions = {}
@@ -327,12 +329,16 @@ class Word:
 		}
 		if pos in replace:
 			return replace[pos]
+		if not pos:
+			pos = 'particle'
 		return pos
 
 	def get_word_no_accent(self):
 		return self.word.replace("́", "")
 
 	def add_definition(self, pos, definition, human_audited=False):
+		if not pos:
+			pos = 'particle'
 		if pos == 'verb' and len(definition.split()) == 1:
 			definition = f"to {definition}"
 		if '[1]' in definition:
@@ -350,12 +356,12 @@ class Word:
 			('’', "'"),
 			(',:', ':'),
 			('\\', ''),
+			(' )', ')'),
 			(',)', ')'),
 			(',,', ','),
 			(', (', ' ('),
 			('!slash!', '/'),
 			(', ;', ','),
-			(' )', ')')
 		]
 		for x, y in bad_stuff:
 			if x in definition:
