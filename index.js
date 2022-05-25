@@ -432,7 +432,8 @@ Promise.all([
 		})
 		.catch(err => {throw err})
 ]).then( () => { 
-	readURL();
+	readURL(window.location.href);
+	setURL(true);
 }).catch(err => {throw err})
 
 window.onscroll = (_) => {
@@ -603,23 +604,25 @@ function select() {
 	sortInfo = document.querySelector('select#sort').value;
 	selectHelper();
 	filterHelper();
-	search();
+	search(false);
 	main(data.slice(0, numDisplayed));
+	setURL()
 }
 
 function filter() {
 	curFilter = document.querySelector('select#filter').value;
 	selectHelper();
 	filterHelper();
-	search();
+	search(false);
 	main(data.slice(0, numDisplayed));
+	setURL()
 }
 
-function search() {
-	setURL()
-	const letters = "abcdefghijklmnopqrstuvwxyzабвгдежзийклмнопрстуфхцчшщъыьэюяєії - ,.;:!/()'\""
+function search(changeURL = true) {
+	const letters = "abcdefghijklmnopqrstuvwxyzабвгдежзийклмнопрстуфхцчшщъыьэюяєіїґ '\""
 	const oldSearch = searchTerm;
-	searchTerm = document.querySelector('input#search').value.toLowerCase().replace('ё', 'е');
+	searchTerm = document.querySelector('input#search').value.toLowerCase();
+	searchTerm = searchTerm.replace('“', '"').replace('”', '"').replace('«', '"').replace('»', '"')
 	let newSearchTerm = ''
 	for (const s of searchTerm) { if (letters.includes(s)) newSearchTerm += s; }
 	searchTerm = newSearchTerm;
@@ -629,9 +632,10 @@ function search() {
 	}
 	searchHelper();
 	main(data.slice(0, numDisplayed))
+	if (changeURL) setURL();
 }
 
-function setURL() {
+function setURL(replace = false) {
 	let urlSearchTerm = document.querySelector('input#search').value;
 	let urlFilterTerm = document.querySelector('select#filter').value;
 	let urlSortTerm = document.querySelector('select#sort').value;
@@ -652,29 +656,66 @@ function setURL() {
 		const startChar = addedParam ? '&' : '?';
 		base += startChar + 's=' + urlSortTerm;
 	}
-	window.history.replaceState("", "", base)
+	if (replace) { window.history.replaceState("", "", base); }
+	else { window.history.pushState("", "", base); }
 }
 
-function readURL() {
-	let urlRaw = window.location.href;
+function readURL(urlRaw) {
+	console.log('reading URL')
+	console.log(window.location.href)
 	let url = urlRaw.split(/[#\?\&]/).reverse();
-	const base = url.pop();  // unused
-	const search = url.pop(); // unused
+	url.pop();  // base, not used
 	let params = [];
 	while (url.length > 0) {
 		params.push(url.pop().split(/=/));
 	}
-	for (const [var_, val_] of params) {
-		if (var_ === 's') document.querySelector('select#sort').value = val_;
-		if (var_ === 'f') document.querySelector('select#filter').value = val_;
-		if (var_ === 'q') document.querySelector('input#search').value = decodeURI(val_);
+	let defaults = {
+		's': 'freq',
+		'f': '',
+		'q': ''
 	}
-	select();
-	filter();
+	let found = {
+		's': false,
+		'f': false,
+		'q': false
+	}
+	let funcs = {
+		's': 'select#sort',
+		'f': 'select#filter',
+		'q': 'input#search'
+	}
+	for (const [var_, val_] of params) {
+		if (var_ in funcs) {
+			console.log(funcs[var_])
+			document.querySelector(funcs[var_]).value = val_;
+			found[var_] = true
+		}
+	}
+	for (const i of Object.keys(found)) {
+		if (!found[i]) {
+			document.querySelector(funcs[i]).value = defaults[i]
+		}
+	}
+	console.log('now selecting and filtering')
+	console.log(window.location.href)
+	sortInfo = document.querySelector('select#sort').value;
+	curFilter = document.querySelector('select#filter').value;
+	selectHelper();
+	filterHelper();
+	search(false);
 }
+
 function clear() {
 	document.querySelector('input#search').value = ""
 	search();
 }
 
 d3.select('#clear').on('click', clear)
+
+window.onpopstate = (event) => {
+	
+	if (event) {
+		console.log(event.srcElement.location.href)
+		readURL(event.srcElement.location.href);
+	}
+}
