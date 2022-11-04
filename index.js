@@ -320,7 +320,7 @@ var main = (data, increase) => {
 				const beforeClear = isBeginning || !letters.includes(phrase[i - 1].toLowerCase());
 				const afterClear = isEnd || !letters.includes(phrase[i + 1].toLowerCase());
 
-				const isWordMatch = thisLetter.toLowerCase().replace('ё', 'е') === word[index];
+				const isWordMatch = thisLetter.toLowerCase().replaceAll('ё', 'е') === word[index];
 				const isAccent = thisLetter === "́";
 			
 				if (index === 0) {
@@ -493,9 +493,10 @@ function searchHelper() {
 		}
 		let indexes;
 		const canInclude = fuzzyWords.length === 1 && fuzzyWords[0].replace(/[^a-z]/g, '').length === 0;
-		for (const word of fuzzyWords) {
+		for (let word of fuzzyWords) {
 			if (!word) break;
 			// generate words containing all searched letters
+			word = word.replaceAll('ё', 'е')
 			let wordIndexes;
 			for (const l of new Set(word)) {
 				if (!wordIndexes) wordIndexes = wordDict[l];
@@ -524,9 +525,10 @@ function searchHelper() {
 				indexes = _indexes;
 			}
 		}
-		for (const word of literalWords) {
+		for (let word of literalWords) {
 			if (!word) break;
 			// generate words containing all searched letters
+			word = word.replaceAll('ё', 'е')
 			let wordIndexes;
 			for (const l of new Set(word)) {
 				if (!wordIndexes) wordIndexes = wordDict[l];
@@ -567,7 +569,7 @@ function searchHelper() {
 					else if (l === ')') paren--;
 					else if (paren === 0) noParen += l;
 				}
-				return noParen.toLowerCase().replace('ё', 'е').includes(literalRes)
+				return noParen.toLowerCase().replaceAll('ё', 'е').includes(literalRes)
 			} 
 
 			const unpack = (y) => {
@@ -585,9 +587,9 @@ function searchHelper() {
 				allData,
 				x => (
 					d3.filter(x.defs, filterFunc) + d3.filter(unpack(x.forms), y => { 
-						return y.replaceAll('\u0301', '').replace('ё', 'е') === literalRes; 
+						return y.replaceAll('\u0301', '').replaceAll('ё', 'е') === literalRes; 
 					} )
-				).length > 0 || x.word.replaceAll('\u0301', '').replace('ё', 'е') === literalRes
+				).length > 0 || x.word.replaceAll('\u0301', '').replaceAll('ё', 'е') === literalRes
 			).map(x => x.index)
 			
 			const _indexes = d3.filter(Array.from(indexes), x => goodData.includes(x))
@@ -622,7 +624,8 @@ function search(changeURL = true) {
 	const letters = "abcdefghijklmnopqrstuvwxyzабвгдежзийклмнопрстуфхцчшщъыьэюяєіїґ '\""
 	const oldSearch = searchTerm;
 	searchTerm = document.querySelector('input#search').value.toLowerCase();
-	searchTerm = searchTerm.replace('“', '"').replace('”', '"').replace('«', '"').replace('»', '"')
+	searchTerm = searchTerm.replaceAll('“', '"').replaceAll('”', '"').replaceAll('«', '"').replaceAll('»', '"')
+	searchTerm = searchTerm.replaceAll('ё', 'е')
 	let newSearchTerm = ''
 	for (const s of searchTerm) { if (letters.includes(s)) newSearchTerm += s; }
 	searchTerm = newSearchTerm;
