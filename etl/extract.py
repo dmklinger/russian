@@ -34,7 +34,7 @@ def get_ontolex(use_cache=True):
 	with session.get('http://kaiko.getalp.org/static/ontolex/latest/en_dbnary_ontolex.ttl.bz2', stream=True) as f:
 		data = bz2.BZ2File(f.raw).read()
 	print('decompressing')
-	with open('data/raw_dbnary_dump.ttl', 'wb+', encoding='utf-8') as f:
+	with open('data/raw_dbnary_dump.ttl', 'wb+') as f:
 		f.write(data)
 	print('decompressing finished')
 
@@ -53,7 +53,7 @@ def get_superlative_adjectives():
 	add_words(words, results)
 
 	while 'continue' in results:
-		cmcontinue = results['continue']
+		cmcontinue = results['continue']['cmcontinue']
 		results = session.get(f'https://en.wiktionary.org/w/api.php?action=query&list=categorymembers&cmtitle=Category:Russian_superlative_adjectives&format=json&cmlimit=max&cmcontinue={cmcontinue}').json()
 		add_words(words, results)
 	
@@ -73,7 +73,7 @@ def get_lemmas():
 	add_words(words, results)
 
 	while 'continue' in results:
-		cmcontinue = results['continue']
+		cmcontinue = results['continue']['cmcontinue']
 		results = session.get(f'https://en.wiktionary.org/w/api.php?action=query&list=categorymembers&cmtitle=Category:Russian_lemmas&format=json&cmlimit=max&cmcontinue={cmcontinue}').json()
 		add_words(words, results)
 	
@@ -121,6 +121,8 @@ def get_wiktionary_word(word, use_cache=True):
 		pos_pointer = word_pointer.find_previous(['h3', 'h4'])
 		pos = pos_pointer.span.text.lower()
 		def_pointer = word_pointer.find_next('ol')
+		if not def_pointer:
+			def_pointer = word_pointer.find_next('ul')
 		ds = def_pointer.find_all('li')
 		bad_stuff = def_pointer.find_all('span', class_='HQToggle') \
 			+ def_pointer.find_all('abbr') \
@@ -387,7 +389,7 @@ def get_frequency_list():
 		}
 
 		data = defaultdict(lambda: {})
-		for i, li in enumerate(article.find_all('li')):
+		for i, li in enumerate(article.find_all('ol')[0].find_all('li')):
 			word = li.a.extract().text.strip()
 			pos = parts_of_speech[li.text.strip()]
 			data[word][pos] = i + 1
